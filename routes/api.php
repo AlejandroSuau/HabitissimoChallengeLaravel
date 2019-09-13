@@ -14,9 +14,5 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
 Route::get('budget_requests', 'BudgetRequestController@index');
-Route::post('budget_requests', 'BudgetRequestController@store');
+Route::post('budget_requests', 'BudgetRequestController@store')->name('budget_requests.store');

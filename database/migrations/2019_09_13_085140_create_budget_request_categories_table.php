@@ -26,6 +26,6 @@ class CreateBudgetRequestCategoriesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('budget_categories');
+        Schema::dropIfExists('budget_request_categories');
     }
 }

@@ -16,7 +16,7 @@ class CreateBudgetRequestsTable extends Migration
         Schema::create('budget_requests', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('title')->nullable();
-            $table->string('description');
+            $table->mediumText('description');
 
             $table->integer('budget_request_category_id')->unsigned()->nullable();
             $table->foreign('budget_request_category_id')->references('id')->on('budget_request_categories')
