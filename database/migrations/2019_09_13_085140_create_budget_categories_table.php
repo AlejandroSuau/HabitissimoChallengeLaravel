@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateBudgetCategoriesTable extends Migration
+class CreateBudgetRequestCategoriesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateBudgetCategoriesTable extends Migration
      */
     public function up()
     {
-        Schema::create('budget_categories', function (Blueprint $table) {
+        Schema::create('budget_request_categories', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('category')->unique();
         });

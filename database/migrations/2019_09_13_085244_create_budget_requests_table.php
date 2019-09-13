@@ -18,8 +18,8 @@ class CreateBudgetRequestsTable extends Migration
             $table->string('title')->nullable();
             $table->string('description');
 
-            $table->integer('category_id')->unsigned()->nullable();
-            $table->foreign('category_id')->references('id')->on('budget_categories')
+            $table->integer('budget_request_category_id')->unsigned()->nullable();
+            $table->foreign('budget_request_category_id')->references('id')->on('budget_request_categories')
                 ->onDelete('cascade'); // 'On Cascade just to allow us to clean DB for every test'
 
             $table->integer('budget_request_status_id')->unsigned();
