@@ -10,7 +10,7 @@ class BudgetRequest extends Model
 
     protected $table = 'budget_requests';
     protected $fillable = [
-        'title', 'description', 'category_id', 'budget_request_status_id', 'user_id'
+        'title', 'description', 'budget_request_category_id', 'budget_request_status_id', 'user_id'
     ];
 
 
