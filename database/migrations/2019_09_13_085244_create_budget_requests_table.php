@@ -25,6 +25,10 @@ class CreateBudgetRequestsTable extends Migration
             $table->integer('budget_request_status_id')->unsigned();
             $table->foreign('budget_request_status_id')->references('id')->on('budget_request_status')
                 ->onDelete('cascade'); // 'On Cascade just to allow us to clean DB for every test'
+
+            $table->integer('user_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on('users')
+                ->onDelete('cascade'); // 'On Cascade just to allow us to clean DB for every test'
         });
     }
 

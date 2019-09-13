@@ -15,7 +15,7 @@ class CreateBudgetRequestStatusTable extends Migration
     {
         Schema::create('budget_request_status', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('status');
+            $table->string('status')->unique();
         });
     }
 

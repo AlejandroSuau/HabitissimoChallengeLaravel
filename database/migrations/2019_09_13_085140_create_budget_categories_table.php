@@ -15,7 +15,7 @@ class CreateBudgetCategoriesTable extends Migration
     {
         Schema::create('budget_categories', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('category');
+            $table->string('category')->unique();
         });
     }
 
