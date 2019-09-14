@@ -12,9 +12,11 @@ use App\BudgetRequestStatus;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use PhpParser\Node\Expr\Cast\Bool_;
 
 class BudgetRequestController extends Controller
 {
+    const STORE_BUDGET_NECESSARY_PARAMETERS = ['description', 'email', 'phone', 'address'];
     /**
      * Display a listing of the resource.
      *
@@ -37,11 +39,8 @@ class BudgetRequestController extends Controller
 
         try {
             // Throw exception if some parameter is missing
-            $parametersToCheckIfExists = ['description', 'email', 'phone', 'address'];
-            foreach($parametersToCheckIfExists as $parameter) {
-                if (!$request->exists($parameter))
-                    throw new MissingNecessaryParametersException;
-            }
+            if (!$this->doesAllNecessaryParametersExistsOnThatRequest($request))
+                throw new MissingNecessaryParametersException;
 
             // Throw exception if there aren't a category with that name
             if ($request->exists('category')) {
@@ -55,15 +54,7 @@ class BudgetRequestController extends Controller
             return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
         }
 
-        $user = User::where('email', $request->email)->first();
-        if ($user == null) {
-            $user = new User;
-            $user->email = $request->email;
-        }
-
-        $user->phone = $request->phone;
-        $user->address = $request->address;
-        $user->save();
+        $user = $this->createUserByRequestIfNotExists($request);
 
         $budgetRequest->user_id = $user->id;
         $budgetRequest->budget_request_status_id = BudgetRequestStatus::PENDING_ID;
@@ -74,6 +65,40 @@ class BudgetRequestController extends Controller
         $budgetRequest->save();
 
         return response()->json($budgetRequest, HttpStatusCode::CREATED);
+    }
+
+    /**
+     * Check if all necessary parameters for store a new BudgetRequest exists on that Request.
+     * @param Request $request
+     * @return bool
+     */
+    private function doesAllNecessaryParametersExistsOnThatRequest(Request $request) : bool
+    {
+        foreach(self::STORE_BUDGET_NECESSARY_PARAMETERS as $parameter) {
+            if (!$request->exists($parameter))
+                return false;
+        }
+        return true;
+    }
+
+    /**
+     * Create User if not exists or else update it.
+     * @param Request $request
+     * @return User
+     */
+    private function createUserByRequestIfNotExists(Request $request) : User
+    {
+        $user = User::where('email', $request->email)->first();
+        if ($user == null) {
+            $user = new User;
+            $user->email = $request->email;
+        }
+
+        $user->phone = $request->phone;
+        $user->address = $request->address;
+        $user->save();
+
+        return $user;
     }
 
     /**
