@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\HttpStatusCode;
 use App\BudgetRequest;
 use App\BudgetRequestStatus;
 use App\User;
@@ -36,7 +37,7 @@ class BudgetRequestTest extends TestCase
         $this->assertCount(0, User::all());
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(201)
+            ->assertStatus(HttpStatusCode::CREATED)
             ->assertJson($budgetRequestExpected->toArray());
 
         $this->assertCount(1, User::all());
@@ -67,14 +68,14 @@ class BudgetRequestTest extends TestCase
         $budgetRequestExpected->budget_request_status_id = BudgetRequestStatus::PENDING_ID;
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(201)
+            ->assertStatus(HttpStatusCode::CREATED)
             ->assertJson($budgetRequestExpected->toArray());
 
         $dataRequest['phone'] = '665676869 (Modified One)';
         $dataRequest['address'] = 'C/C Modified One';
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(201);
+            ->assertStatus(HttpStatusCode::CREATED);
 
         $this->assertCount(2, BudgetRequest::all());
 
@@ -106,7 +107,7 @@ class BudgetRequestTest extends TestCase
         $this->assertCount(0, BudgetRequest::all()->toArray());
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(400);
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
 
         $this->assertCount(0, BudgetRequest::all()->toArray());
     }
@@ -120,6 +121,7 @@ class BudgetRequestTest extends TestCase
     public function testCreateNewBudgetRequestWithAnExistingCategory()
     {
         BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
 
         $dataRequest = [
             'title' => $this->faker->sentence,
@@ -130,10 +132,8 @@ class BudgetRequestTest extends TestCase
             'category' => 'Reformas Baños'
         ];
 
-        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
-
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(201);
+            ->assertStatus(HttpStatusCode::CREATED);
 
         $this->assertCount(1, BudgetRequest::all()->toArray());
     }
@@ -156,23 +156,23 @@ class BudgetRequestTest extends TestCase
         unset($dataRequest['title']);
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(201);
+            ->assertStatus(HttpStatusCode::CREATED);
 
         unset($dataRequest['phone']);
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(400);
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
 
         $dataRequest['phone'] = '665673769';
         unset($dataRequest['address']);
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(400);
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
 
         unset($dataRequest['description']);
 
         $this->post(route('budget_requests.store'), $dataRequest)
-            ->assertStatus(400);
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
 
         $this->assertCount(1, BudgetRequest::all()->toArray());
     }

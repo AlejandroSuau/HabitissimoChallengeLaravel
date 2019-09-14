@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\HttpStatusCode;
 use App\BudgetRequestCategory;
 use App\Exceptions\CategoryNotExistsException;
 use App\Exceptions\MissingNecessaryParametersException;
@@ -21,7 +22,7 @@ class BudgetRequestController extends Controller
      */
     public function index()
     {
-        return response()->json(BudgetRequest::all(), 201);
+        return response()->json(BudgetRequest::all(), HttpStatusCode::OK);
     }
 
     /**
@@ -51,7 +52,7 @@ class BudgetRequestController extends Controller
                 $budgetRequest->budget_request_category_id = $category->id;
             }
         } catch(\Exception $e) {
-            return response()->json(["Error" => $e->getMessage()], 400);
+            return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
         }
 
         $user = User::where('email', $request->email)->first();
@@ -72,7 +73,7 @@ class BudgetRequestController extends Controller
         }
         $budgetRequest->save();
 
-        return response()->json($budgetRequest, 201);
+        return response()->json($budgetRequest, HttpStatusCode::CREATED);
     }
 
     /**
