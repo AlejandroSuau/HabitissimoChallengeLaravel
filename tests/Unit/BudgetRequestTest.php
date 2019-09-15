@@ -248,9 +248,133 @@ class BudgetRequestTest extends TestCase
         ];
 
         $this->put(route('budget_requests.update', $budgetRequestId), $dataRequestToModify)
-            ->assertStatus(HttpStatusCode::NOT_MODIFIED);
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
 
         $budgetRequest = BudgetRequest::find($budgetRequestId);
         $this->assertEquals($budgetRequest->title, $dataRequest['title']);
+    }
+
+    /**
+     * Publish a new pending budget request.
+     * @return void
+     */
+    public function testPublishBudgetRequest()
+    {
+        BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
+
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'I\'m a new BudgetRequest',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769',
+            'category' => 'Reformas Baños'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertTrue($budgetRequest->canBePublished);
+
+        $this->put(route('budget_requests.publish', $budgetRequest->id))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertEquals(BudgetRequestStatus::PUBLISHED_ID, $budgetRequest->budget_request_status_id);
+    }
+
+    /**
+     * Publish a budget request which was published before. It may produces an exception.
+     *
+     * @return void
+     */
+    public function testPublishOnePublishedBudgetRequest()
+    {
+        BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
+
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'I\'m a new BudgetRequest',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769',
+            'category' => 'Reformas Baños'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertTrue($budgetRequest->canBePublished);
+
+        $this->put(route('budget_requests.publish', $budgetRequest->id))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertEquals(BudgetRequestStatus::PUBLISHED_ID, $budgetRequest->budget_request_status_id);
+
+        $this->put(route('budget_requests.publish', $budgetRequest->id))
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
+    }
+
+    /**
+     * Publish a budget request which has missing title.
+     *
+     * @return void
+     */
+    public function testPublishBudgetRequestWithMissingTitle()
+    {
+        BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
+
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => '',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769',
+            'category' => 'Reformas Baños'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertFalse($budgetRequest->canBePublished);
+
+        $this->put(route('budget_requests.publish', $budgetRequest->id))
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
+    }
+
+    /**
+     * Publish a budget request which has missing category.
+     *
+     * @return void
+     */
+    public function testPublishBudgetRequestWithMissingCategory()
+    {
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'This is a title.',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertFalse($budgetRequest->canBePublished);
+
+        $this->put(route('budget_requests.publish', $budgetRequest->id))
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
     }
 }

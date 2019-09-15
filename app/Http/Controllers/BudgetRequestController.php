@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\BudgetRequestCantBePublishedException;
 use App\HttpStatusCode;
 use App\BudgetRequestCategory;
 use App\User;
@@ -20,7 +21,7 @@ class BudgetRequestController extends Controller
 {
 
     /**
-     * Display a listing of the resource.
+     * Display list of all resources with a pagination.
      *
      * @return \Illuminate\Http\Response
      */
@@ -30,7 +31,7 @@ class BudgetRequestController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a new Budget Request.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -53,7 +54,7 @@ class BudgetRequestController extends Controller
             // Throw exception if there aren't a category with that name
             if ($request->exists('category')) {
                 $category = BudgetRequestCategory::where('category', 'like', $request->category)->first();
-                if ($category == null)
+                if (is_null($category))
                     throw new CategoryNotExistsException;
 
                 $budgetRequest->budget_request_category_id = $category->id;
@@ -83,7 +84,7 @@ class BudgetRequestController extends Controller
     private function createUserIfNotExistsOrUpdateIfItDoes(Request $request) : User
     {
         $user = User::where('email', $request->email)->first();
-        if ($user == null) {
+        if (is_null($user)) {
             $user = new User;
             $user->email = $request->email;
         }
@@ -96,7 +97,7 @@ class BudgetRequestController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update title, description and category params of a Budget Request if it has PENDING status.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -106,7 +107,7 @@ class BudgetRequestController extends Controller
     {
         try {
             $budgetRequest = BudgetRequest::find($id);
-            if ($budgetRequest == null)
+            if (is_null($budgetRequest))
                 throw new BudgetRequestNotFoundException;
 
             if (!$budgetRequest->isPending)
@@ -120,7 +121,7 @@ class BudgetRequestController extends Controller
 
             if ($request->exists('category')) {
                 $category = BudgetRequestCategory::where('category', 'like', $request->category)->first();
-                if ($category == null)
+                if (is_null($category))
                     throw new CategoryNotExistsException;
 
                 $budgetRequest->budget_request_category_id = $category->id;
@@ -130,7 +131,27 @@ class BudgetRequestController extends Controller
 
             return response()->json($budgetRequest, HttpStatusCode::OK);
         } catch(\Exception $e) {
-            return response()->json(["error" => $e->getMessage()], HttpStatusCode::NOT_MODIFIED);
+            return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
         }
+    }
+
+    public function publish($id)
+    {
+        $budgetRequest = BudgetRequest::find($id);
+
+        try {
+            if (is_null($budgetRequest))
+                throw new BudgetRequestNotFoundException;
+
+            if (!$budgetRequest->canBePublished)
+               throw new BudgetRequestCantBePublishedException;
+        } catch(\Exception $e) {
+            return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
+        }
+
+        $budgetRequest->budget_request_status_id = BudgetRequestStatus::PUBLISHED_ID;
+        $budgetRequest->save();
+
+        return response()->json($budgetRequest, HttpStatusCode::OK);
     }
 }
