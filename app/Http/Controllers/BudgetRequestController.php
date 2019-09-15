@@ -76,7 +76,7 @@ class BudgetRequestController extends Controller
     }
 
     /**
-     * Create User if not exists or else update it.
+     * Create User if not exists or update phone and address if it does.
      * @param Request $request
      * @return User
      */
