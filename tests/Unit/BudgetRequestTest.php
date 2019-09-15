@@ -177,19 +177,80 @@ class BudgetRequestTest extends TestCase
         $this->assertCount(1, BudgetRequest::all()->toArray());
     }
 
-    /*public function testModifyAnExistingBudgetRequest()
+    /**
+     * Create a budget request and then modify it's title, description and category.
+     *
+     * @return void
+     */
+    public function testModifyAnExistingBudgetRequest()
     {
         $dataRequest = [
-            'title' => $this->faker->sentence,
+            'title' => 'I\'m a new BudgetRequest',
             'description' => $this->faker->paragraph,
             'email' => 'alejandro.suau@gmail.com',
             'address' => 'C/Cala Torta nº 1, 2º 2ª',
             'phone' => '665673769'
         ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
+
+        BudgetRequestCategory::create(['category' => 'Aire Acondicionado']);
+        $this->assertCount(2, BudgetRequestCategory::all()->toArray());
+
+        $budgetRequestId = 1;
+        $modifiedCategoryId = 2;
+        $dataRequestToModify = [
+            'title' => 'I\'m a modified BudgetRequest',
+            'description' => 'I\'m a modified description',
+            'category' => 'Aire Acondicionado'
+        ];
+
+        $this->put(route('budget_requests.update', $budgetRequestId), $dataRequestToModify)
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertEquals($budgetRequest->title, $dataRequestToModify['title']);
+        $this->assertEquals($budgetRequest->description, $dataRequestToModify['description']);
+        $this->assertEquals($budgetRequest->budget_request_category_id, $modifiedCategoryId);
     }
 
-    public function testModifyAnExistingBudgetRequestWithNonPendingStatus()
+    /**
+     * Create a budget request and update it's status to PUBLISHED. After that, it tries to modify the
+     * budget requests title. It throws an exception. It is not allowed to update a budget request while it hasn't
+     * PENDING status.
+     *
+     * @return void
+     */
+    public function testModifyExistingBudgetRequestNonPending()
     {
+        $dataRequest = [
+            'title' => 'I\'m a new BudgetRequest',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769'
+        ];
 
-    }*/
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $budgetRequestId = 1;
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $budgetRequest->budget_request_status_id = BudgetRequestStatus::PUBLISHED_ID;
+        $budgetRequest->save();
+
+        $dataRequestToModify = [
+            'title' => 'I\'m a modified BudgetRequest'
+        ];
+
+        $this->put(route('budget_requests.update', $budgetRequestId), $dataRequestToModify)
+            ->assertStatus(HttpStatusCode::NOT_MODIFIED);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertEquals($budgetRequest->title, $dataRequest['title']);
+    }
 }

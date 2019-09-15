@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use App\HttpStatusCode;
 use App\BudgetRequestCategory;
-use App\Exceptions\CategoryNotExistsException;
-use App\Exceptions\MissingNecessaryParametersException;
 use App\User;
 use App\BudgetRequest;
 use App\BudgetRequestStatus;
-use App\Http\Requests\BudgetRequestStoreRequest;
-use Illuminate\Support\Facades\Validator;
 
+use App\Exceptions\BudgetRequestNotFoundException;
+use App\Exceptions\CategoryNotExistsException;
+use App\Exceptions\MissingNecessaryParametersException;
+use App\Exceptions\BudgetRequestIsNotPendingException;
+
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use PhpParser\Node\Expr\Cast\Bool_;
 
 class BudgetRequestController extends Controller
 {
@@ -62,7 +62,7 @@ class BudgetRequestController extends Controller
             return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
         }
 
-        $user = $this->createUserIfNotExistsOrUpdateIfDoes($request);
+        $user = $this->createUserIfNotExistsOrUpdateIfItDoes($request);
 
         $budgetRequest->user_id = $user->id;
         $budgetRequest->budget_request_status_id = BudgetRequestStatus::PENDING_ID;
@@ -80,7 +80,7 @@ class BudgetRequestController extends Controller
      * @param Request $request
      * @return User
      */
-    private function createUserIfNotExistsOrUpdateIfDoes(Request $request) : User
+    private function createUserIfNotExistsOrUpdateIfItDoes(Request $request) : User
     {
         $user = User::where('email', $request->email)->first();
         if ($user == null) {
@@ -104,23 +104,33 @@ class BudgetRequestController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Evaluate Request Parameters (Throw exception if needed)
+        try {
+            $budgetRequest = BudgetRequest::find($id);
+            if ($budgetRequest == null)
+                throw new BudgetRequestNotFoundException;
 
-        // Select BudgetRequest by ID (Throw exception if not exists on DB)
+            if (!$budgetRequest->isPending)
+                throw new BudgetRequestIsNotPendingException;
 
-        // Check if it has a pending status (Throw exception if it hasn't)
+            if ($request->exists('title'))
+                $budgetRequest->title = $request->title;
 
-        // Update parameters
-    }
+            if ($request->exists('description'))
+                $budgetRequest->description = $request->description;
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+            if ($request->exists('category')) {
+                $category = BudgetRequestCategory::where('category', 'like', $request->category)->first();
+                if ($category == null)
+                    throw new CategoryNotExistsException;
+
+                $budgetRequest->budget_request_category_id = $category->id;
+            }
+
+            $budgetRequest->save();
+
+            return response()->json($budgetRequest, HttpStatusCode::OK);
+        } catch(\Exception $e) {
+            return response()->json(["error" => $e->getMessage()], HttpStatusCode::NOT_MODIFIED);
+        }
     }
 }

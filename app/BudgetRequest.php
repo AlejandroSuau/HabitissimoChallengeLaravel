@@ -13,6 +13,10 @@ class BudgetRequest extends Model
         'title', 'description', 'budget_request_category_id', 'budget_request_status_id', 'user_id'
     ];
 
+    public function getIsPendingAttribute()
+    {
+        return $this->budget_request_status_id == BudgetRequestStatus::PENDING_ID;
+    }
 
     public function category()
     {

@@ -16,3 +16,4 @@ use Illuminate\Http\Request;
 
 Route::get('budget_requests', 'BudgetRequestController@index');
 Route::post('budget_requests', 'BudgetRequestController@store')->name('budget_requests.store');
+Route::put('budget_requests/{id}', 'BudgetRequestController@update')->name('budget_requests.update');
