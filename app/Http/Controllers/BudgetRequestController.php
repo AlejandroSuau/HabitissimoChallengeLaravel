@@ -62,7 +62,7 @@ class BudgetRequestController extends Controller
             return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
         }
 
-        $user = $this->createUserByRequestIfNotExists($request);
+        $user = $this->createUserIfNotExistsOrUpdateIfDoes($request);
 
         $budgetRequest->user_id = $user->id;
         $budgetRequest->budget_request_status_id = BudgetRequestStatus::PENDING_ID;
@@ -80,7 +80,7 @@ class BudgetRequestController extends Controller
      * @param Request $request
      * @return User
      */
-    private function createUserByRequestIfNotExists(Request $request) : User
+    private function createUserIfNotExistsOrUpdateIfDoes(Request $request) : User
     {
         $user = User::where('email', $request->email)->first();
         if ($user == null) {
