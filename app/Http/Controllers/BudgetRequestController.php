@@ -9,6 +9,8 @@ use App\Exceptions\MissingNecessaryParametersException;
 use App\User;
 use App\BudgetRequest;
 use App\BudgetRequestStatus;
+use App\Http\Requests\BudgetRequestStoreRequest;
+use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -16,7 +18,7 @@ use PhpParser\Node\Expr\Cast\Bool_;
 
 class BudgetRequestController extends Controller
 {
-    const STORE_BUDGET_NECESSARY_PARAMETERS = ['description', 'email', 'phone', 'address'];
+
     /**
      * Display a listing of the resource.
      *
@@ -39,7 +41,13 @@ class BudgetRequestController extends Controller
 
         try {
             // Throw exception if some parameter is missing
-            if (!$this->doesAllNecessaryParametersExistsOnThatRequest($request))
+            $validator = Validator::make($request->all(), [
+                'phone' => 'required',
+                'description' => 'required',
+                'email' => 'required|email',
+                'address' => 'required'
+            ]);
+            if ($validator->fails())
                 throw new MissingNecessaryParametersException;
 
             // Throw exception if there aren't a category with that name
@@ -68,20 +76,6 @@ class BudgetRequestController extends Controller
     }
 
     /**
-     * Check if all necessary parameters for store a new BudgetRequest exists on that Request.
-     * @param Request $request
-     * @return bool
-     */
-    private function doesAllNecessaryParametersExistsOnThatRequest(Request $request) : bool
-    {
-        foreach(self::STORE_BUDGET_NECESSARY_PARAMETERS as $parameter) {
-            if (!$request->exists($parameter))
-                return false;
-        }
-        return true;
-    }
-
-    /**
      * Create User if not exists or else update it.
      * @param Request $request
      * @return User
@@ -102,17 +96,6 @@ class BudgetRequestController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -121,7 +104,13 @@ class BudgetRequestController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        // Evaluate Request Parameters (Throw exception if needed)
+
+        // Select BudgetRequest by ID (Throw exception if not exists on DB)
+
+        // Check if it has a pending status (Throw exception if it hasn't)
+
+        // Update parameters
     }
 
     /**

@@ -176,4 +176,20 @@ class BudgetRequestTest extends TestCase
 
         $this->assertCount(1, BudgetRequest::all()->toArray());
     }
+
+    /*public function testModifyAnExistingBudgetRequest()
+    {
+        $dataRequest = [
+            'title' => $this->faker->sentence,
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769'
+        ];
+    }
+
+    public function testModifyAnExistingBudgetRequestWithNonPendingStatus()
+    {
+
+    }*/
 }
