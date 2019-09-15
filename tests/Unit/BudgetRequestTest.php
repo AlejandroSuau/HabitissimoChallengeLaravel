@@ -169,7 +169,7 @@ class BudgetRequestTest extends TestCase
         $this->post(route('budget_requests.store'), $dataRequest)
             ->assertStatus(HttpStatusCode::BAD_REQUEST);
 
-        unset($dataRequest['description']);
+        $dataRequest['description'] = '';
 
         $this->post(route('budget_requests.store'), $dataRequest)
             ->assertStatus(HttpStatusCode::BAD_REQUEST);
