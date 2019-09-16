@@ -377,4 +377,99 @@ class BudgetRequestTest extends TestCase
         $this->put(route('budget_requests.publish', $budgetRequest->id))
             ->assertStatus(HttpStatusCode::BAD_REQUEST);
     }
+
+    /**
+     * Discard a budget request with pending state.
+     * @return void
+     */
+    public function testDiscardBudgetRequestWithPendingState()
+    {
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'This is a title.',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769',
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $this->put(route('budget_requests.discard', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertTrue($budgetRequest->wasDiscarded);
+    }
+
+    /**
+     * Discard a budget request with published state.
+     * @return void
+     */
+    public function testDiscardBudgetRequestWithPublishedState()
+    {
+        BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
+
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'This is a title.',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769',
+            'category' => 'Reformas Baños'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $this->put(route('budget_requests.publish', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $this->put(route('budget_requests.discard', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertTrue($budgetRequest->wasDiscarded);
+    }
+
+    /**
+     * Discard a budget request with discarded state.
+     * @return void
+     */
+    public function testDiscardBudgetRequestWithDiscardedState()
+    {
+        BudgetRequestCategory::create(['category' => 'Reformas Baños']);
+        $this->assertCount(1, BudgetRequestCategory::all()->toArray());
+
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'This is a title.',
+            'description' => $this->faker->paragraph,
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769',
+            'category' => 'Reformas Baños'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $this->put(route('budget_requests.publish', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertFalse($budgetRequest->wasDiscarded);
+
+        $this->put(route('budget_requests.discard', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK);
+
+        $budgetRequest = BudgetRequest::find($budgetRequestId);
+        $this->assertTrue($budgetRequest->wasDiscarded);
+
+        $this->put(route('budget_requests.discard', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::BAD_REQUEST);
+    }
 }

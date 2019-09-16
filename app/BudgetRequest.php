@@ -32,6 +32,11 @@ class BudgetRequest extends Model
         return $this->budget_request_status_id == BudgetRequestStatus::PENDING_ID;
     }
 
+    public function getWasDiscardedAttribute()
+    {
+        return $this->budget_request_status_id == BudgetRequestStatus::DISCARDED_ID;
+    }
+
     public function category()
     {
         return $this->hasOne('App\BudgetRequestCategory');

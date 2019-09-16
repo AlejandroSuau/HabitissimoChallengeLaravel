@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\BudgetRequestAlreadyDiscardedException;
 use App\Exceptions\BudgetRequestCantBePublishedException;
 use App\HttpStatusCode;
 use App\BudgetRequestCategory;
@@ -135,6 +136,12 @@ class BudgetRequestController extends Controller
         }
     }
 
+    /**
+     * Publish a budget request which complies the requirements of publishment.
+     *
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function publish($id)
     {
         $budgetRequest = BudgetRequest::find($id);
@@ -150,6 +157,33 @@ class BudgetRequestController extends Controller
         }
 
         $budgetRequest->budget_request_status_id = BudgetRequestStatus::PUBLISHED_ID;
+        $budgetRequest->save();
+
+        return response()->json($budgetRequest, HttpStatusCode::OK);
+    }
+
+    /**
+     * Discard a budget request which is not already discarded.
+     *
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function discard($id)
+    {
+        $budgetRequest = BudgetRequest::find($id);
+
+        try {
+            if (is_null($budgetRequest))
+                throw new BudgetRequestNotFoundException;
+
+            if ($budgetRequest->wasDiscarded)
+                throw new BudgetRequestAlreadyDiscardedException;
+
+        } catch(\Exception $e) {
+            return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
+        }
+
+        $budgetRequest->budget_request_status_id = BudgetRequestStatus::DISCARDED_ID;
         $budgetRequest->save();
 
         return response()->json($budgetRequest, HttpStatusCode::OK);
