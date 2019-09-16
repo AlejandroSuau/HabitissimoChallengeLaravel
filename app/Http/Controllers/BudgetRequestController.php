@@ -26,9 +26,15 @@ class BudgetRequestController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request, $email = null)
     {
-        return response()->json(BudgetRequest::all(), HttpStatusCode::OK);
+        $maxResults = 2;
+        if (is_null($email))
+            $budgetRequests = BudgetRequest::jsonPaginate($maxResults);
+        else
+            $budgetRequests = BudgetRequest::allOfThisUser($email)->jsonPaginate($maxResults);
+
+        return response()->json($budgetRequests, HttpStatusCode::OK);
     }
 
     /**

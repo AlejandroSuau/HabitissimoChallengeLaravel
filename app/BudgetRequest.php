@@ -12,6 +12,21 @@ class BudgetRequest extends Model
     protected $fillable = [
         'title', 'description', 'budget_request_category_id', 'budget_request_status_id', 'user_id'
     ];
+    protected $hidden = ['budget_request_category_id', 'budget_request_status_id', 'user_id'];
+    protected $with = ['user', 'category', 'status'];
+
+    /**
+     * Return all the budget request associated to this user email.
+     *
+     * @param $query
+     * @param $email
+     * @return mixed
+     */
+    public function scopeAllOfThisUser($query, $email)
+    {
+        return $query->join('users', 'budget_requests.user_id', '=', 'users.id')
+            ->where('users.email', $email);
+    }
 
     /**
      * One budget request can be published only if it complies those requirements:
@@ -39,16 +54,16 @@ class BudgetRequest extends Model
 
     public function category()
     {
-        return $this->hasOne('App\BudgetRequestCategory');
+        return $this->belongsTo('App\BudgetRequestCategory', 'budget_request_category_id');
     }
 
     public function status()
     {
-        return $this->hasOne('App\BudgetRequestStatus');
+        return $this->belongsTo('App\BudgetRequestStatus', 'budget_request_status_id');
     }
 
     public function user()
     {
-        return $this->hasOne('App\User');
+        return $this->belongsTo('App\User');
     }
 }

@@ -13,5 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(BudgetRequestStatusSeeder::class);
         $this->call(BudgetRequestCategoriesSeeder::class);
+        $this->call(UsersSeeder::class);
+        $this->call(BudgetRequestSeeder::class);
     }
 }
