@@ -29,6 +29,9 @@
 - URL: /budget_requests/discard/{id}
 - Method: put
 
+6. Suggest a category based on Budget Request's description:
+- URL: /budget_requests/suggest_category/{id}
+- Method: get
 
 ## License
 
