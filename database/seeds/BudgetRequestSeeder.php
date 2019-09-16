@@ -26,7 +26,7 @@ class BudgetRequestSeeder extends Seeder
         while ($i < $budgetRequestSeeds) {
             BudgetRequest::create([
                 'title' => $faker->sentence,
-                'description' => $faker->paragraph,
+                'description' => 'Quiero quitar la bañera y poner una mampara con un plato de ducha',
                 'budget_request_category_id' => rand(1, $categoriesNum),
                 'budget_request_status_id' => rand(1, $statusNum),
                 'user_id' => rand(1, $usersNum)

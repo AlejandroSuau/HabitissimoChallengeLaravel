@@ -472,4 +472,50 @@ class BudgetRequestTest extends TestCase
         $this->put(route('budget_requests.discard', $budgetRequestId))
             ->assertStatus(HttpStatusCode::BAD_REQUEST);
     }
+
+    /**
+     * Suggest a category based on budget requet's description.
+     *
+     * @return void
+     */
+    public function testSuggestBudgetRequestCategory()
+    {
+        $budgetRequestId = 1;
+        $dataRequest = [
+            'title' => 'This is a title.',
+            'description' => 'quiero quitar la bañera y poner una mampara con un plato de ducha',
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769'
+        ];
+        $expectedJson = [
+            'suggested_category' => 'Reformas Baños'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $this->get(route('budget_requests.suggest', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK)
+            ->assertJson($expectedJson);
+
+        $budgetRequestId = 2;
+        $dataRequest = [
+            'title' => 'This is a title.',
+            'description' => 'Hola, tengo una casa de unos 50 m2 con sobrepiso.  He leido la bomba de calor podria encajarme.',
+            'email' => 'alejandro.suau@gmail.com',
+            'address' => 'C/Cala Torta nº 1, 2º 2ª',
+            'phone' => '665673769'
+        ];
+        $expectedJson = [
+            'suggested_category' => 'Aire Acondicionado'
+        ];
+
+        $this->post(route('budget_requests.store'), $dataRequest)
+            ->assertStatus(HttpStatusCode::CREATED);
+
+        $this->get(route('budget_requests.suggest', $budgetRequestId))
+            ->assertStatus(HttpStatusCode::OK)
+            ->assertJson($expectedJson);
+    }
 }

@@ -17,6 +17,8 @@ use App\Exceptions\BudgetRequestIsNotPendingException;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Niiknow\Bayes;
+use Rap2hpoutre\FastExcel\FastExcel;
 
 class BudgetRequestController extends Controller
 {
@@ -193,5 +195,38 @@ class BudgetRequestController extends Controller
         $budgetRequest->save();
 
         return response()->json($budgetRequest, HttpStatusCode::OK);
+    }
+
+    /**
+     * Suggest a new category based on budget requet's description.
+     *
+     * @param $id
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Box\Spout\Common\Exception\IOException
+     * @throws \Box\Spout\Common\Exception\UnsupportedTypeException
+     * @throws \Box\Spout\Reader\Exception\ReaderNotOpenedException
+     */
+    public function suggest($id)
+    {
+        $budgetRequest = BudgetRequest::find($id);
+        try {
+            if (is_null($budgetRequest))
+                throw new BudgetRequestNotFoundException;
+        } catch(\Exception $e) {
+            return response()->json(["error" => $e->getMessage()], HttpStatusCode::BAD_REQUEST);
+        }
+
+        $path = storage_path('app\public\training_data.xlsx');
+        $data = (new FastExcel)->import($path)->toArray();
+
+        // Make the model to learn.
+        $classifier = new Bayes();
+        foreach($data as $row) {
+            $classifier->learn($row['Descripción'], $row['Categoría']);
+        }
+
+        // Categorize it's description
+        $suggestedCategory = $classifier->categorize($budgetRequest->description);
+        return response()->json(["suggested_category" => $suggestedCategory], HttpStatusCode::OK);
     }
 }

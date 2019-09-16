@@ -16,3 +16,4 @@ Route::post('budget_requests', 'BudgetRequestController@store')->name('budget_re
 Route::put('budget_requests/{id}', 'BudgetRequestController@update')->name('budget_requests.update');
 Route::put('budget_requests/publish/{id}', 'BudgetRequestController@publish')->name('budget_requests.publish');
 Route::put('budget_requests/discard/{id}', 'BudgetRequestController@discard')->name('budget_requests.discard');
+Route::get('budget_requests/suggest_category/{id}', 'BudgetRequestController@suggest')->name('budget_requests.suggest');
