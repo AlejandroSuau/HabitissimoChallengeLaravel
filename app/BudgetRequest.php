@@ -37,19 +37,19 @@ class BudgetRequest extends Model
      */
     public function getCanBePublishedAttribute() : bool
     {
-        return (!is_null($this->title) && $this->title != ""
-            && !is_null($this->budget_request_category_id) && $this->budget_request_category_id != ""
-            && $this->budget_request_status_id == BudgetRequestStatus::PENDING_ID);
+        return (!empty($this->title)
+            && !empty($this->budget_request_category_id)
+            && $this->budget_request_status_id === BudgetRequestStatus::PENDING_ID);
     }
 
     public function getIsPendingAttribute()
     {
-        return $this->budget_request_status_id == BudgetRequestStatus::PENDING_ID;
+        return $this->budget_request_status_id === BudgetRequestStatus::PENDING_ID;
     }
 
     public function getWasDiscardedAttribute()
     {
-        return $this->budget_request_status_id == BudgetRequestStatus::DISCARDED_ID;
+        return $this->budget_request_status_id === BudgetRequestStatus::DISCARDED_ID;
     }
 
     public function category()

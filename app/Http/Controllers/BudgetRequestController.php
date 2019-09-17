@@ -32,11 +32,11 @@ class BudgetRequestController extends Controller
     {
         $maxResults = 2;
         if (is_null($email))
-            $budgetRequests = BudgetRequest::jsonPaginate($maxResults);
-        else
-            $budgetRequests = BudgetRequest::allOfThisUser($email)->jsonPaginate($maxResults);
+            return response()->json(
+                BudgetRequest::jsonPaginate($maxResults), HttpStatusCode::OK);
 
-        return response()->json($budgetRequests, HttpStatusCode::OK);
+        return response()->json(
+            BudgetRequest::allOfThisUser($email)->jsonPaginate($maxResults), HttpStatusCode::OK);
     }
 
     /**
